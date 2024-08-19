@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  planka:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    volumes:
+      - user-avatars:/app/public/user-avatars
+      - project-background-images:/app/public/project-background-images
+      - attachments:/app/private/attachments
+    ports:
+      - 3000:1337
+    environment:
+      - BASE_URL=http://localhost:3000
+      - DATABASE_URL=postgresql://postgres:your_password@postgres/planka
+      - SECRET_KEY=notsecretkey
+      - DEFAULT_ADMIN_EMAIL=demo@demo.demo
+      - DEFAULT_ADMIN_PASSWORD=dev
+      - DEFAULT_ADMIN_NAME=dev
+      - DEFAULT_ADMIN_USERNAME=dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:14-alpine
+    restart: on-failure
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=planka
+      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d planka" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  user-avatars:
+  project-background-images:
+  attachments:
+  db-data:
